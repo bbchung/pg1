@@ -301,6 +301,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\PGSysEx.cpp">
+      <Filter>pg_midi_lib\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\PGMidiDevice.cpp">
       <Filter>pg_midi_lib\Source</Filter>
     </ClCompile>
@@ -1509,6 +1512,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\PGSysEx.h">
+      <Filter>pg_midi_lib\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\PGDevice.h">
       <Filter>pg_midi_lib\Source</Filter>
     </ClInclude>

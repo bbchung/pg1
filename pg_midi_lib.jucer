@@ -5,6 +5,8 @@
               jucerVersion="3.1.0">
   <MAINGROUP id="oRYDpk" name="pg_midi_lib">
     <GROUP id="{434720CF-52B0-A9B6-B857-FB18C7713649}" name="Source">
+      <FILE id="YqQ2Bj" name="PGSysEx.cpp" compile="1" resource="0" file="Source/PGSysEx.cpp"/>
+      <FILE id="BzmX6g" name="PGSysEx.h" compile="0" resource="0" file="Source/PGSysEx.h"/>
       <FILE id="vghOby" name="PGMidiDevice.cpp" compile="1" resource="0"
             file="Source/PGMidiDevice.cpp"/>
       <FILE id="Bm3uO5" name="PGDevice.h" compile="0" resource="0" file="Source/PGDevice.h"/>

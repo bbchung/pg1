@@ -131,6 +131,7 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\PGSysEx.cpp"/>
     <ClCompile Include="..\..\Source\PGMidiDevice.cpp"/>
     <ClCompile Include="..\..\Source\PGDeviceManager.cpp"/>
     <ClCompile Include="..\..\..\..\juce\modules\juce_audio_basics\buffers\juce_AudioDataConverters.cpp">
@@ -1234,6 +1235,7 @@
     <ClCompile Include="..\..\..\..\juce\modules\juce_video\juce_video.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\PGSysEx.h"/>
     <ClInclude Include="..\..\Source\PGDevice.h"/>
     <ClInclude Include="..\..\Source\PGDeviceManager.h"/>
     <ClInclude Include="..\..\..\..\juce\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>

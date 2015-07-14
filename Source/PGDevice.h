@@ -14,6 +14,12 @@
 #include <JuceHeader.h>
 #include <string>
 #include <vector>
+#include <map>
+#include <mutex>
+#include <condition_variable>
+
+
+#include "PGSysEx.h"
 
 enum DeviceType
 {
@@ -29,12 +35,12 @@ enum ConnectStatus
 };
 
 // maybe ble does not use handlIn and handleOut, if that, we need define seperatly
-typedef struct _DeviceDesc
+struct DeviceDesc
 {
 	int midiInIndex;
 	int midiOutIndex;
 	DeviceType type;
-} DeviceDesc;
+};
 
 
 typedef void(*OnConnectStatusChanged)(ConnectStatus conn_status, void *userData);
@@ -50,16 +56,18 @@ public:
 
 
 	// following virtual function need to be impl
+	virtual bool saveCustomizedCC(int count, CustomCCData *udm){ return false; }
+	virtual bool saveCustomizedPC(int count, CustomPCData *udm){ return false; }
 	/*
 	virtual bool connect(OnConnectStatusChanged handlConnStatusChange, void *connStatusParam, OnG1ControlChange handleG1ControlChange, void *g1CcParam);
 	virtual void disconnect();
 
-	virtual int savePreset(unsigned char bank_id, unsigned char preset_id, size_t size, char *data);
+	virtual int savePreset(uint8 bank_id, uint8 preset_id, size_t size, char *data);
 	virtual int tempSavePreset(size_t size, char *data);
-	virtual int switchPreset(unsigned char bank_id, unsigned char preset_id);
-	virtual int setDspParameter(unsigned char bank_id, unsigned char control_id_msb, unsigned int control_id_lsb);
+	virtual int switchPreset(uint8 bank_id, uint8 preset_id);
+	virtual int setDspParameter(uint8 bank_id, uint8 control_id_msb, unsigned int control_id_lsb);
 
-	virtual int requestPreset(unsigned char bank_id, unsigned char preset_id, size_t *size, char **data);
+	virtual int requestPreset(uint8 bank_id, uint8 preset_id, size_t *size, char **data);
 	virtual int requestDeviceInfo(size_t *size, char **data);
 	virtual int requestBattery(size_t *size, char **data);
 	virtual int requestLed(size_t *size, char **data);
@@ -87,7 +95,6 @@ protected:
 	PGDevice(DeviceDesc desc) :
 		Desc(desc)
 	{
-
 	}
 
 private:
@@ -97,18 +104,48 @@ class PGMidiDevice : public PGDevice
 {
 	friend class PGDeviceManager;
 
+	struct MessageNotify
+	{
+		std::condition_variable *cv;
+		MidiMessage msg;
+
+		MessageNotify()
+		{
+			cv = new std::condition_variable();
+		}
+
+		~MessageNotify()
+		{
+			delete cv;
+		}
+	};
+
+
 	class PGMidiInputCallback : public MidiInputCallback
 	{
+	public:
+		PGMidiDevice *Device;
+		PGMidiInputCallback(PGMidiDevice *device)
+		{
+			Device = device;
+		}
 		void handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message);
 	};
 
 public:
+	~PGMidiDevice();
+
+	std::map<int, MessageNotify> CVMap;
+	std::mutex Mutex;
+
 	static std::vector<DeviceDesc> getDevices();
 	static PGMidiDevice *openDevice(DeviceDesc desc);
 
+	bool saveCustomizedCC(int count, CustomCCData *udm);
+	bool saveCustomizedPC(int count, CustomPCData *udm);
 	void close();
-	
 private:
+
 	MidiInput *_midiIn;
 	MidiOutput *_midiOut;
 
