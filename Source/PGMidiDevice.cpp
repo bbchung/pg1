@@ -115,10 +115,10 @@ void PGMidiDevice::close()
 	}
 }
 
-bool PGMidiDevice::saveCustomizedCC(int count, CustomCC *ccc)
+bool PGMidiDevice::saveCustomizedCC(const vector<CustomCC> &ccc)
 {
 	uint8 sysex_buf[MAX_SYSEX_SIZE] = { 0 };
-	size_t sysex_size = PGSysExComposer::ComposeSaveCustomCCSysEx(count, ccc, sysex_buf);
+	size_t sysex_size = PGSysExComposer::ComposeSaveCustomCCSysEx(ccc, sysex_buf);
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
@@ -137,10 +137,10 @@ bool PGMidiDevice::saveCustomizedCC(int count, CustomCC *ccc)
 	return true;
 }
 
-bool PGMidiDevice::saveCustomizedPC(int count, CustomPC *cpc)
+bool PGMidiDevice::saveCustomizedPC(const vector<CustomPC> &cpc)
 {
 	uint8 sysex_buf[MAX_SYSEX_SIZE] = { 0 };
-	size_t sysex_size = PGSysExComposer::ComposeSaveCustomPCSysEx(count, cpc, sysex_buf);
+	size_t sysex_size = PGSysExComposer::ComposeSaveCustomPCSysEx(cpc, sysex_buf);
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
@@ -159,10 +159,10 @@ bool PGMidiDevice::saveCustomizedPC(int count, CustomPC *cpc)
 	return true;
 }
 
-bool PGMidiDevice::requestCustomizedCC(int count, CustomCC *ccc)
+bool PGMidiDevice::requestCustomizedCC(vector<CustomCC> &ccc)
 {
 	uint8 sysex_buf[MAX_SYSEX_SIZE] = {0};
-	size_t sysex_size = PGSysExComposer::ComposeRequestCustomCCSysEx(count, ccc, sysex_buf);
+	size_t sysex_size = PGSysExComposer::ComposeRequestCustomCCSysEx(ccc, sysex_buf);
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
@@ -175,13 +175,13 @@ bool PGMidiDevice::requestCustomizedCC(int count, CustomCC *ccc)
 	if (PGSysExParser::GetOpLsb(sysex_reply, sysex_reply_size) != CUSTOM_CC_OBJ)
 		return false;
 
-	return PGSysExParser::GetCustomCC(sysex_reply, sysex_reply_size, ccc, count);
+	return PGSysExParser::GetCustomCC(sysex_reply, sysex_reply_size, ccc);
 }
 
-bool PGMidiDevice::requestCustomizedPC(int count, CustomPC *cpc)
+bool PGMidiDevice::requestCustomizedPC(vector<CustomPC> &cpc)
 {
 	uint8 sysex_buf[MAX_SYSEX_SIZE] = { 0 };
-	size_t sysex_buf_size = PGSysExComposer::ComposeRequestCustomPCSysEx(count, cpc, sysex_buf);
+	size_t sysex_buf_size = PGSysExComposer::ComposeRequestCustomPCSysEx(cpc, sysex_buf);
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_buf_size, 0);
 
@@ -194,5 +194,5 @@ bool PGMidiDevice::requestCustomizedPC(int count, CustomPC *cpc)
 	if (PGSysExParser::GetOpLsb(sysex_reply, sysex_reply_size) != CUSTOM_PC_OBJ)
 		return false;
 
-	return PGSysExParser::GetCustomPC(sysex_reply, sysex_reply_size, cpc, count);
+	return PGSysExParser::GetCustomPC(sysex_reply, sysex_reply_size, cpc);
 }

@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int SetupMidiDataFromGeneralData(unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen)
+using namespace std;
+
+unsigned int PGSysExComposer::SetupMidiDataFromGeneralData(unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen)
 {
 	unsigned char *p_cc;
 	unsigned int mididatalen;
@@ -68,7 +70,7 @@ unsigned int SetupMidiDataFromGeneralData(unsigned char *midiBuf, unsigned char 
 	return mididatalen;
 }
 
-unsigned int SetupGeneralDataFromMidiData(const unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen)
+unsigned int PGSysExParser::SetupGeneralDataFromMidiData(const unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen)
 {
 	unsigned char cc;
 	unsigned char *start = dataBuf;
@@ -138,16 +140,12 @@ unsigned int SetupGeneralDataFromMidiData(const unsigned char *midiBuf, unsigned
 	return unsigned int(dataBuf - start);
 }
 
-int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **enc_buf)
+int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char *enc_buf)
 {
 	if (!raw_buf || !enc_buf)
 		return -1;
 
 	int enc_size = (raw_size * 8 + 6) / 7;
-
-	*enc_buf = (unsigned char *)malloc(enc_size);
-	memset(*enc_buf, 0, enc_size);
-
 	unsigned char mask[] = { 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe };
 
 	int pr = 0; // raw_buf pointer
@@ -159,14 +157,14 @@ int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **enc_buf)
 
 		if (mod == 0)
 		{
-			(*enc_buf)[pe] = 0x7f & raw_buf[pr];
+			enc_buf[pe] = 0x7f & raw_buf[pr];
 		}
 		else
 		{
-			(*enc_buf)[pe] = (raw_buf[pr] & mask[mod - 1]) >> (8 - mod);
+			enc_buf[pe] = (raw_buf[pr] & mask[mod - 1]) >> (8 - mod);
 
 			if (pr + 1 < raw_size && mod < 7)
-				(*enc_buf)[pe] |= ((raw_buf[pr + 1] & ~mask[mod])) << mod;
+				enc_buf[pe] |= ((raw_buf[pr + 1] & ~mask[mod])) << mod;
 
 			pr++;
 		}
@@ -177,16 +175,12 @@ int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **enc_buf)
 	return enc_size;
 }
 
-int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **dec_buf)
+int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char *dec_buf)
 {
 	if (!raw_buf || !dec_buf)
 		return -1;
 
 	int dec_size = (raw_size * 7) / 8;
-
-	*dec_buf = (unsigned char *)malloc(dec_size);
-	memset(*dec_buf, 0, dec_size);
-
 	unsigned char mask[] = { 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f };
 
 	int pr = 0; // raw_buf pointer
@@ -198,8 +192,8 @@ int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **dec_buf)
 
 		if (pr + 1 < raw_size && mod <= 6)
 		{
-			(*dec_buf)[pd] = ((raw_buf[pr] >> mod) & mask[6 - mod]);
-			(*dec_buf)[pd] |= ((raw_buf[pr + 1] & mask[mod])) << (7 - mod);
+			dec_buf[pd] = ((raw_buf[pr] >> mod) & mask[6 - mod]);
+			dec_buf[pd] |= ((raw_buf[pr + 1] & mask[mod])) << (7 - mod);
 			pd++;
 		}
 
@@ -226,79 +220,104 @@ size_t PGSysExComposer::ComposePGSysEx(unsigned char op_msb, unsigned char op_ls
 	return sysex_size;
 }
 
-size_t PGSysExComposer::ComposeSaveCustomCCSysEx(int count, CustomCC *ccc, unsigned char *sysex_buf)
+size_t PGSysExComposer::ComposeSaveCustomCCSysEx(const vector<CustomCC> &ccc, unsigned char *sysex_buf)
 {
-	if (!ccc || !sysex_buf)
+	if (!sysex_buf)
 		return 0;
 
+	int count = ccc.size();
+
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
-	size_t size = 4 + sizeof(CustomCC) * count;
 	memcpy(opdata8, &count, 4);
-	memcpy(opdata8 + 4, ccc, sizeof(CustomCC) * count);
+
+	int offset = 4;
+	for (int i = 0; i < count; ++i)
+	{
+		opdata8[offset++] = ccc[i].channel;
+		opdata8[offset++] = ccc[i].control_number;
+		opdata8[offset++] = ccc[i].knobId;
+	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, size);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
 
 	size_t sysex_size = ComposePGSysEx(SAVE_GRP, CUSTOM_CC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
 }
 
-size_t PGSysExComposer::ComposeSaveCustomPCSysEx(int count, CustomPC *cpc, unsigned char *sysex_buf)
+size_t PGSysExComposer::ComposeSaveCustomPCSysEx(const vector<CustomPC> &cpc, unsigned char *sysex_buf)
 {
-	if (!cpc || !sysex_buf)
+	if (!sysex_buf)
 		return 0;
 
+	int count = cpc.size();
+
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
-	size_t size = 4 + sizeof(CustomPC) * count;
 	memcpy(opdata8, &count, 4);
-	memcpy(opdata8 + 4, cpc, sizeof(CustomPC) * count);
+
+	int offset = 4;
+	for (int i = 0; i < count; ++i)
+	{
+		opdata8[offset++] = cpc[i].channel;
+		opdata8[offset++] = cpc[i].preset_number;
+
+		opdata8[offset] = cpc[i].model;
+		offset += 4;
+
+		opdata8[offset] = cpc[i].type;
+		offset += 4;
+	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, size);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
 
 	size_t sysex_size = ComposePGSysEx(SAVE_GRP, CUSTOM_PC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
 }
 
-size_t PGSysExComposer::ComposeRequestCustomCCSysEx(int count, CustomCC *ccc, unsigned char *sysex_buf)
+size_t PGSysExComposer::ComposeRequestCustomCCSysEx(const vector<CustomCC> &ccc, unsigned char *sysex_buf)
 {
-	if (!ccc || !sysex_buf)
+	if (!sysex_buf)
 		return 0;
+
+	size_t count = ccc.size();
 
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
 	memcpy(opdata8, &count, 4);
 
-	int size = 4;
+	int offset = 4;
 	for (int i = 0; i < count; ++i)
 	{
-		opdata8[size++] = (ccc + i)->channel;
-		opdata8[size++] = (ccc + i)->control_number;
+		opdata8[offset++] = ccc[i].channel;
+		opdata8[offset++] = ccc[i].control_number;
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, size);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
 
 	size_t sysex_size = ComposePGSysEx(REQUEST_GRP, CUSTOM_CC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
 }
 
-size_t PGSysExComposer::ComposeRequestCustomPCSysEx(int count, CustomPC *cpc, unsigned char *sysex_buf)
+size_t PGSysExComposer::ComposeRequestCustomPCSysEx(const vector<CustomPC> &cpc, unsigned char *sysex_buf)
 {
-	if (!cpc || !sysex_buf)
+	if (!sysex_buf)
 		return 0;
+
+	size_t count = cpc.size();
 
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
 	memcpy(opdata8, &count, 4);
 
-	int size = 4;
+	int offset = 4;
 	for (int i = 0; i < count; ++i)
 	{
-		opdata8[size++] = (cpc + i)->channel;
-		opdata8[size++] = (cpc + i)->preset_number;
+		opdata8[offset++] = cpc[i].channel;
+		opdata8[offset++] = cpc[i].preset_number;
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, size);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
 
 	size_t sysex_size = ComposePGSysEx(REQUEST_GRP, CUSTOM_PC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
@@ -325,7 +344,7 @@ size_t PGSysExParser::GetOpData(const unsigned char *sysex_buf, size_t sysex_siz
 	return sysex_size - 5;
 }
 
-bool PGSysExParser::GetCustomCC(const unsigned char *sysex_buf, size_t sysex_size, CustomCC *ccc, size_t count)
+bool PGSysExParser::GetCustomCC(const unsigned char *sysex_buf, size_t sysex_size, vector<CustomCC> &ccc)
 {
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
 	const unsigned char *opdata7;
@@ -334,29 +353,29 @@ bool PGSysExParser::GetCustomCC(const unsigned char *sysex_buf, size_t sysex_siz
 
 	int reply_count = *((int *)opdata8);
 
-	if (reply_count != count)
+	if (reply_count != ccc.size())
 		return false;
 
-	if (opdata8_size != 4 + sizeof(CustomCC) * count)
+	if (opdata8_size != 4 + sizeof(CustomCC) * reply_count)
 		return false;
 
 	int offset = 4;
-	for (int i = 0; i < count; ++i)
+	for (int i = 0; i < reply_count; ++i)
 	{
-		(ccc + i)->channel = opdata8[offset];
+		ccc[i].channel = opdata8[offset];
 		++offset;
 
-		(ccc + i)->control_number = opdata8[offset];
+		ccc[i].control_number = opdata8[offset];
 		++offset;
 
-		(ccc + i)->knobId = *((unsigned int *)(opdata8 + offset));
+		ccc[i].knobId = *((unsigned int *)(opdata8 + offset));
 		offset += 4;
 	}
 
 	return true;
 }
 
-bool PGSysExParser::GetCustomPC(const unsigned char *sysex_buf, size_t sysex_size, CustomPC *cpc, size_t count)
+bool PGSysExParser::GetCustomPC(const unsigned char *sysex_buf, size_t sysex_size, vector<CustomPC> &cpc)
 {
 	unsigned char opdata8[MAX_OP_8_SIZE] = { 0 };
 	const unsigned char *opdata7;
@@ -365,25 +384,25 @@ bool PGSysExParser::GetCustomPC(const unsigned char *sysex_buf, size_t sysex_siz
 
 	int reply_count = *((int *)opdata8);
 
-	if (reply_count != count)
+	if (reply_count != cpc.size())
 		return false;
 
-	if (opdata8_size != 4 + sizeof(CustomPC) * count)
+	if (opdata8_size != 4 + sizeof(CustomPC) * reply_count)
 		return false;
 
 	int offset = 4;
-	for (int i = 0; i < count; ++i)
+	for (int i = 0; i < reply_count; ++i)
 	{
-		(cpc + i)->channel = opdata8[offset];
+		cpc[i].channel = opdata8[offset];
 		++offset;
 
-		(cpc + i)->preset_number = opdata8[offset];
+		cpc[i].preset_number = opdata8[offset];
 		++offset;
 
-		(cpc + i)->type = *((unsigned int *)(opdata8 + offset));
+		cpc[i].type = *((unsigned int *)(opdata8 + offset));
 		offset += 4;
 
-		(cpc + i)->model = *((unsigned int *)(opdata8 + offset));
+		cpc[i].model = *((unsigned int *)(opdata8 + offset));
 		offset += 4;
 	}
 

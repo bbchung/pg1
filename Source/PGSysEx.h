@@ -1,6 +1,8 @@
 #ifndef PG_SYSEX_H
 #define PG_SYSEX_H
 
+#include <vector>
+
 #define MAX_OP_8_SIZE 768
 #define MAX_OP_7_SIZE (MAX_OP_8_SIZE * 8 + 6)/7
 #define MAX_SYSEX_SIZE 1024
@@ -36,6 +38,7 @@ enum OP_OBJECT
 
 #pragma pack(push)
 #pragma pack(1)
+
 struct CustomCC
 {
 	unsigned char channel;
@@ -52,22 +55,16 @@ struct CustomPC
 };
 #pragma pack(pop)
 
-
-static unsigned int SetupGeneralDataFromMidiData(const unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen);
-static unsigned int SetupMidiDataFromGeneralData(unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen);
-static int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **enc_buf);
-static int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char **dec_buf);
-
-
 class PGSysExComposer
 {
 public:
-	static size_t ComposeSaveCustomCCSysEx(int count, CustomCC *ccc, unsigned char *sysex_buf);
-	static size_t ComposeSaveCustomPCSysEx(int count, CustomPC *cpc, unsigned char *sysex_buf);
-	static size_t ComposeRequestCustomCCSysEx(int count, CustomCC *ccc, unsigned char *sysex_buf);
-	static size_t ComposeRequestCustomPCSysEx(int count, CustomPC *cpc, unsigned char *sysex_buf);
-
+	static size_t ComposeSaveCustomCCSysEx(const std::vector<CustomCC> &ccc, unsigned char *sysex_buf);
+	static size_t ComposeSaveCustomPCSysEx(const std::vector<CustomPC> &cpc, unsigned char *sysex_buf);
+	static size_t ComposeRequestCustomCCSysEx(const std::vector<CustomCC> &ccc, unsigned char *sysex_buf);
+	static size_t ComposeRequestCustomPCSysEx(const std::vector<CustomPC> &cpc, unsigned char *sysex_buf);
 private:
+	static unsigned int SetupMidiDataFromGeneralData(unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen);
+	static int Encode7Bit(int raw_size, unsigned char *raw_buf, unsigned char *enc_buf);
 	static size_t ComposePGSysEx(unsigned char op_msb, unsigned char op_lsb, unsigned char *opdata, int opdata_size, unsigned char *sysex_buf);
 
 };
@@ -79,8 +76,11 @@ public:
 	static unsigned char GetOpMsb(const unsigned char *sysex_buf, size_t sysex_size);
 	static unsigned char GetOpLsb(const unsigned char *sysex_buf, size_t sysex_size);
 	static size_t GetOpData(const unsigned char *sysex_buf, size_t sysex_size, const unsigned char **opdata);
-	static bool GetCustomCC(const unsigned char *sysex_buf, size_t sysex_size, CustomCC *ccc, size_t size);
-	static bool GetCustomPC(const unsigned char *sysex_buf, size_t sysex_size, CustomPC *cpc, size_t size);
+	static bool GetCustomCC(const unsigned char *sysex_buf, size_t sysex_size, std::vector<CustomCC> &ccc);
+	static bool GetCustomPC(const unsigned char *sysex_buf, size_t sysex_size, std::vector<CustomPC> &cpc);
+private:
+	static unsigned int SetupGeneralDataFromMidiData(const unsigned char *midiBuf, unsigned char *dataBuf, unsigned int dataLen);
+	static int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char *dec_buf);
 };
 
 #endif  // COMMANDDATA_H_INCLUDED

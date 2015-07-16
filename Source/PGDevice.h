@@ -79,10 +79,10 @@ public:
 
 
 	// following virtual function need to be impl
-	virtual bool saveCustomizedCC(int count, CustomCC *udm){ return false; }
-	virtual bool saveCustomizedPC(int count, CustomPC *udm){ return false; }
-	virtual bool requestCustomizedCC(int count, CustomCC *udm){ return false; }
-	virtual bool requestCustomizedPC(int count, CustomPC *udm){ return false; }
+	virtual bool saveCustomizedCC(const std::vector<CustomCC> &ccc){ return false; }
+	virtual bool saveCustomizedPC(const std::vector<CustomPC> &cpc){ return false; }
+	virtual bool requestCustomizedCC(std::vector<CustomCC> &ccc){ return false; }
+	virtual bool requestCustomizedPC(std::vector<CustomCC> &cpc){ return false; }
 	/*
 	virtual bool connect(OnConnectStatusChanged handlConnStatusChange, void *connStatusParam, OnG1ControlChange handleG1ControlChange, void *g1CcParam);
 	virtual void disconnect();
@@ -145,10 +145,10 @@ public:
 	~PGMidiDevice();
 
 	static std::vector<PGMidiDeviceDesc> getDevices();
-	bool saveCustomizedCC(int count, CustomCC *ccc);
-	bool saveCustomizedPC(int count, CustomPC *cpc);
-	bool requestCustomizedCC(int count, CustomCC *ccc);
-	bool requestCustomizedPC(int count, CustomPC *cpc);
+	bool saveCustomizedCC(const std::vector<CustomCC> &ccc);
+	bool saveCustomizedPC(const std::vector<CustomPC> &cpc);
+	bool requestCustomizedCC(std::vector<CustomCC> &ccc);
+	bool requestCustomizedPC(std::vector<CustomPC> &cpc);
 	bool open();
 	void close();
 
