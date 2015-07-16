@@ -26,6 +26,7 @@ enum OP_GROUP
 	REPLY_GRP,
 	ACK_GRP,
 	NAK_GRP,
+	NOTIFYCHANGE_GRP,
 };
 
 
@@ -83,4 +84,6 @@ private:
 	static int Decode7Bit(int raw_size, unsigned char *raw_buf, unsigned char *dec_buf);
 };
 
-#endif  // COMMANDDATA_H_INCLUDED
+std::string ToHexString(const unsigned char *buf, size_t size);
+
+#endif  // PG_SYSEX_H

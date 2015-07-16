@@ -239,7 +239,7 @@ size_t PGSysExComposer::ComposeSaveCustomCCSysEx(const vector<CustomCC> &ccc, un
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata7, opdata8, offset);
 
 	size_t sysex_size = ComposePGSysEx(SAVE_GRP, CUSTOM_CC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
@@ -269,7 +269,7 @@ size_t PGSysExComposer::ComposeSaveCustomPCSysEx(const vector<CustomPC> &cpc, un
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata7, opdata8, offset);
 
 	size_t sysex_size = ComposePGSysEx(SAVE_GRP, CUSTOM_PC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
@@ -293,7 +293,7 @@ size_t PGSysExComposer::ComposeRequestCustomCCSysEx(const vector<CustomCC> &ccc,
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata7, opdata8, offset);
 
 	size_t sysex_size = ComposePGSysEx(REQUEST_GRP, CUSTOM_CC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
@@ -317,7 +317,7 @@ size_t PGSysExComposer::ComposeRequestCustomPCSysEx(const vector<CustomPC> &cpc,
 	}
 
 	unsigned char opdata7[MAX_OP_7_SIZE] = { 0 };
-	int opdata7_size = SetupMidiDataFromGeneralData(opdata8, opdata7, offset);
+	int opdata7_size = SetupMidiDataFromGeneralData(opdata7, opdata8, offset);
 
 	size_t sysex_size = ComposePGSysEx(REQUEST_GRP, CUSTOM_PC_OBJ, opdata7, opdata7_size, sysex_buf);
 	return sysex_size;
@@ -408,3 +408,14 @@ bool PGSysExParser::GetCustomPC(const unsigned char *sysex_buf, size_t sysex_siz
 
 	return true;
 }
+
+string ToHexString(const unsigned char *buf, size_t size)
+{
+	char hexstr[1024] = { 0 };
+	int i;
+	for (i = 0; i < size; i++)
+		sprintf(hexstr + i * 2, "%02x", buf[i]);
+
+	return hexstr;
+}
+

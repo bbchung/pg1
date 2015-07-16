@@ -2,14 +2,18 @@
 
 using namespace std;
 
-void PGMidiDevice::PGMidiInputCallback::handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message)
+void PGMidiDevice::PGMidiInputCallback::handleIncomingMidiMessage(MidiInput *source, const MidiMessage &msg)
 {
+	Logger::getCurrentLogger()->writeToLog("midiin: recv message:");
+	string dbg = ToHexString(msg.getRawData(), msg.getRawDataSize());
+	Logger::getCurrentLogger()->writeToLog(dbg);
+
 	// currently, G1 should only send SysEx to app
-	if (!message.isSysEx())
+	if (!msg.isSysEx())
 		return;
 
-	const uint8 *buf = message.getSysExData();
-	int size = message.getSysExDataSize();
+	const uint8 *buf = msg.getSysExData();
+	int size = msg.getSysExDataSize();
 
 	if (!PGSysExParser::IsPGSysEx(buf, size))
 		return;
@@ -17,11 +21,11 @@ void PGMidiDevice::PGMidiInputCallback::handleIncomingMidiMessage(MidiInput *sou
 	switch (PGSysExParser::GetOpMsb(buf, size))
 	{
 	case REPLY_GRP:
-		OwnerMidiDevice->MMBox.NotifyReply(message);
+		OwnerMidiDevice->MidiMessageBox.NotifyReply(msg);
 		break;
 	case ACK_GRP:
 	case NAK_GRP:
-		OwnerMidiDevice->MMBox.NotifyAck(message);
+		OwnerMidiDevice->MidiMessageBox.NotifyAck(msg);
 		break;
 	default:
 		break;
@@ -122,17 +126,23 @@ bool PGMidiDevice::saveCustomizedCC(const vector<CustomCC> &ccc)
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
-	if (MMBox.SendMessageAndWaitAck(_midiOut, msg, 5000) == cv_status::timeout)
+	if (!MidiMessageBox.SendMessageAndWaitAckOrNak(_midiOut, msg, 5000))
 		return false;
 
-	const uint8 *sysex_ack = MMBox.AckMessage.getSysExData();
-	int sysex_ack_size = MMBox.ReplyMessage.getSysExDataSize();
+	const uint8 *sysex_ack = MidiMessageBox.AckMessage.getSysExData();
+	int sysex_ack_size = MidiMessageBox.ReplyMessage.getSysExDataSize();
 
 	if (PGSysExParser::GetOpMsb(sysex_ack, sysex_ack_size) == NAK_GRP)
+	{
+		Logger::getCurrentLogger()->writeToLog("recv a nak");
 		return false;
+	}
 
 	if (PGSysExParser::GetOpLsb(sysex_ack, sysex_ack_size) != CUSTOM_CC_OBJ)
+	{
+		Logger::getCurrentLogger()->writeToLog("ack is not for CUSTOM_CC");
 		return false;
+	}
 
 	return true;
 }
@@ -144,36 +154,45 @@ bool PGMidiDevice::saveCustomizedPC(const vector<CustomPC> &cpc)
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
-	if (MMBox.SendMessageAndWaitAck(_midiOut, msg, 5000) == cv_status::timeout)
+	if (!MidiMessageBox.SendMessageAndWaitAckOrNak(_midiOut, msg, 5000))
 		return false;
 
-	const uint8 *sysex_ack = MMBox.AckMessage.getSysExData();
-	int sysex_ack_size = MMBox.ReplyMessage.getSysExDataSize();
+	const uint8 *sysex_ack = MidiMessageBox.AckMessage.getSysExData();
+	int sysex_ack_size = MidiMessageBox.ReplyMessage.getSysExDataSize();
 
 	if (PGSysExParser::GetOpMsb(sysex_ack, sysex_ack_size) == NAK_GRP)
+	{
+		Logger::getCurrentLogger()->writeToLog("recv a nak");
 		return false;
+	}
 
 	if (PGSysExParser::GetOpLsb(sysex_ack, sysex_ack_size) != CUSTOM_PC_OBJ)
+	{
+		Logger::getCurrentLogger()->writeToLog("ack is not for CUSTOM_PC");
 		return false;
+	}
 
 	return true;
 }
 
 bool PGMidiDevice::requestCustomizedCC(vector<CustomCC> &ccc)
 {
-	uint8 sysex_buf[MAX_SYSEX_SIZE] = {0};
+	uint8 sysex_buf[MAX_SYSEX_SIZE] = { 0 };
 	size_t sysex_size = PGSysExComposer::ComposeRequestCustomCCSysEx(ccc, sysex_buf);
 
 	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
-	if (MMBox.SendMessageAndWaitReply(_midiOut, msg, 5000) == cv_status::timeout)
+	if (!MidiMessageBox.SendMessageAndWaitReply(_midiOut, msg, 5000))
 		return false;
 
-	const uint8 *sysex_reply = MMBox.ReplyMessage.getSysExData();
-	int sysex_reply_size = MMBox.ReplyMessage.getSysExDataSize();
+	const uint8 *sysex_reply = MidiMessageBox.ReplyMessage.getSysExData();
+	int sysex_reply_size = MidiMessageBox.ReplyMessage.getSysExDataSize();
 
 	if (PGSysExParser::GetOpLsb(sysex_reply, sysex_reply_size) != CUSTOM_CC_OBJ)
+	{
+		Logger::getCurrentLogger()->writeToLog("reply is not for CUSTOM_CC");
 		return false;
+	}
 
 	return PGSysExParser::GetCustomCC(sysex_reply, sysex_reply_size, ccc);
 }
@@ -181,18 +200,68 @@ bool PGMidiDevice::requestCustomizedCC(vector<CustomCC> &ccc)
 bool PGMidiDevice::requestCustomizedPC(vector<CustomPC> &cpc)
 {
 	uint8 sysex_buf[MAX_SYSEX_SIZE] = { 0 };
-	size_t sysex_buf_size = PGSysExComposer::ComposeRequestCustomPCSysEx(cpc, sysex_buf);
+	size_t sysex_size = PGSysExComposer::ComposeRequestCustomPCSysEx(cpc, sysex_buf);
 
-	MidiMessage msg = MidiMessage(sysex_buf, sysex_buf_size, 0);
+	MidiMessage msg = MidiMessage(sysex_buf, sysex_size, 0);
 
-	if (MMBox.SendMessageAndWaitReply(_midiOut, msg, 5000) == cv_status::timeout)
+	if (!MidiMessageBox.SendMessageAndWaitReply(_midiOut, msg, 5000))
 		return false;
 
-	const uint8 *sysex_reply = MMBox.ReplyMessage.getSysExData();
-	int sysex_reply_size = MMBox.ReplyMessage.getSysExDataSize();
+	const uint8 *sysex_reply = MidiMessageBox.ReplyMessage.getSysExData();
+	int sysex_reply_size = MidiMessageBox.ReplyMessage.getSysExDataSize();
 
 	if (PGSysExParser::GetOpLsb(sysex_reply, sysex_reply_size) != CUSTOM_PC_OBJ)
+	{
+		Logger::getCurrentLogger()->writeToLog("reply is not for CUSTOM_PC");
 		return false;
+	}
 
 	return PGSysExParser::GetCustomPC(sysex_reply, sysex_reply_size, cpc);
+}
+
+MidiMessageBox::MidiMessageBox()
+{
+
+}
+
+void MidiMessageBox::NotifyAck(const MidiMessage &msg)
+{
+	std::unique_lock<std::mutex> lck(_mutex);
+	AckMessage = msg;
+	_ack_cv.notify_all();
+}
+
+void MidiMessageBox::NotifyReply(const MidiMessage &msg)
+{
+	std::unique_lock<std::mutex> lck(_mutex);
+	ReplyMessage = msg;
+	_reply_cv.notify_all();
+}
+
+bool MidiMessageBox::SendMessageAndWaitAckOrNak(MidiOutput *out, MidiMessage &msg, int msec)
+{
+	if (!out)
+		return false;
+
+	Logger::getCurrentLogger()->writeToLog("midiout: send message and wait ack:");
+	string dbg = ToHexString(msg.getRawData(), msg.getRawDataSize());
+	Logger::getCurrentLogger()->writeToLog(dbg);
+
+	std::unique_lock<std::mutex> lck(_mutex);
+	out->sendMessageNow(msg);
+	return std::cv_status::no_timeout == _ack_cv.wait_for(lck, std::chrono::milliseconds(msec));
+}
+
+bool MidiMessageBox::SendMessageAndWaitReply(MidiOutput *out, MidiMessage &msg, int msec)
+{
+	if (!out)
+		return false;
+
+	Logger::getCurrentLogger()->writeToLog("midiout: send message and wait reply");
+	string dbg = ToHexString(msg.getRawData(), msg.getRawDataSize());
+	Logger::getCurrentLogger()->writeToLog(dbg);
+
+	std::unique_lock<std::mutex> lck(_mutex);
+	out->sendMessageNow(msg);
+	return std::cv_status::no_timeout == _reply_cv.wait_for(lck, std::chrono::milliseconds(msec));
 }

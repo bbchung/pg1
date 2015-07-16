@@ -40,33 +40,14 @@ class MidiMessageBox
 public:
 	MidiMessage AckMessage;
 	MidiMessage ReplyMessage;
-	void NotifyAck(const MidiMessage &msg)
-	{
-		std::unique_lock<std::mutex> lck(_mutex);
-		AckMessage = msg;
-		_ack_cv.notify_all();
-	}
 
-	void NotifyReply(const MidiMessage &msg)
-	{
-		std::unique_lock<std::mutex> lck(_mutex);
-		ReplyMessage = msg;
-		_reply_cv.notify_all();
-	}
+	MidiMessageBox();
 
-	std::cv_status SendMessageAndWaitAck(MidiOutput *out, MidiMessage &msg, int msec)
-	{
-		std::unique_lock<std::mutex> lck(_mutex);
-		out->sendMessageNow(msg);
-		return _ack_cv.wait_for(lck, std::chrono::milliseconds(msec));
-	}
+	void NotifyAck(const MidiMessage &msg);
+	void NotifyReply(const MidiMessage &msg);
+	bool SendMessageAndWaitAckOrNak(MidiOutput *out, MidiMessage &msg, int msec);
+	bool SendMessageAndWaitReply(MidiOutput *out, MidiMessage &msg, int msec);
 
-	std::cv_status SendMessageAndWaitReply(MidiOutput *out, MidiMessage &msg, int msec)
-	{
-		std::unique_lock<std::mutex> lck(_mutex);
-		out->sendMessageNow(msg);
-		return _reply_cv.wait_for(lck, std::chrono::milliseconds(msec));
-	}
 };
 
 
@@ -139,7 +120,7 @@ class PGMidiDevice : public PGDevice
 	};
 
 public:
-	MidiMessageBox MMBox;
+	MidiMessageBox MidiMessageBox;
 
 	PGMidiDevice(const PGMidiDeviceDesc &desc);
 	~PGMidiDevice();
@@ -162,12 +143,12 @@ private:
 /*
 class PGBleDevice : public PGDevice
 {
-	friend class PGDeviceManager;
+friend class PGDeviceManager;
 
 private:
-	PGBleDevice(DeviceDesc desc);
+PGBleDevice(DeviceDesc desc);
 };
 */
 
 
-#endif  // PGDEVICE_H_INCLUDED
+#endif  // PG_DEVICE_H
