@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2013
-Project("{CE6CF9AA-CD61-31B5-78F1-2831A85719C2}") = "pg_midi_lib", "pg_midi_lib.vcxproj", "{B9B208E6-91BC-02DC-F879-BDF25544549D}"
+Project("{CE6CF9AA-CD61-31B5-78F1-2831A85719C2}") = "pg_midi_lib", "pg_midi_lib.vcxproj", "{89DC752A-FA58-9847-CCEA-A812954AA133}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,10 +8,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B9B208E6-91BC-02DC-F879-BDF25544549D}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B9B208E6-91BC-02DC-F879-BDF25544549D}.Debug|Win32.Build.0 = Debug|Win32
-		{B9B208E6-91BC-02DC-F879-BDF25544549D}.Release|Win32.ActiveCfg = Release|Win32
-		{B9B208E6-91BC-02DC-F879-BDF25544549D}.Release|Win32.Build.0 = Release|Win32
+		{89DC752A-FA58-9847-CCEA-A812954AA133}.Debug|Win32.ActiveCfg = Debug|Win32
+		{89DC752A-FA58-9847-CCEA-A812954AA133}.Debug|Win32.Build.0 = Debug|Win32
+		{89DC752A-FA58-9847-CCEA-A812954AA133}.Release|Win32.ActiveCfg = Release|Win32
+		{89DC752A-FA58-9847-CCEA-A812954AA133}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

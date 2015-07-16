@@ -1,23 +1,10 @@
-/*
-  ==============================================================================
-
-    PGDevice.h
-    Created: 9 Jul 2015 6:13:46pm
-    Author:  bb
-
-  ==============================================================================
-*/
-
-#ifndef PGDEVICE_H_INCLUDED
-#define PGDEVICE_H_INCLUDED
+#ifndef PG_DEVICE_H
+#define PG_DEVICE_H
 
 #include <JuceHeader.h>
-#include <string>
 #include <vector>
-#include <map>
 #include <mutex>
 #include <condition_variable>
-
 
 #include "PGSysEx.h"
 
@@ -34,12 +21,10 @@ enum ConnectStatus
 	DISCONNECTED
 };
 
-// maybe ble does not use handlIn and handleOut, if that, we need define seperatly
-struct DeviceDesc
+struct PGMidiDeviceDesc
 {
 	int midiInIndex;
 	int midiOutIndex;
-	DeviceType type;
 };
 
 
@@ -47,17 +32,57 @@ typedef void(*OnConnectStatusChanged)(ConnectStatus conn_status, void *userData)
 typedef void(*OnG1ControlChange)(unsigned int ctrl_id, short value, void *userData);
 typedef void(*OnFirmwareTransmitFinished)(bool succ);
 
+class MidiMessageBox
+{
+	std::mutex _mutex;
+	std::condition_variable _ack_cv;
+	std::condition_variable _reply_cv;
+public:
+	MidiMessage AckMessage;
+	MidiMessage ReplyMessage;
+	void NotifyAck(const MidiMessage &msg)
+	{
+		std::unique_lock<std::mutex> lck(_mutex);
+		AckMessage = msg;
+		_ack_cv.notify_all();
+	}
+
+	void NotifyReply(const MidiMessage &msg)
+	{
+		std::unique_lock<std::mutex> lck(_mutex);
+		ReplyMessage = msg;
+		_reply_cv.notify_all();
+	}
+
+	std::cv_status SendMessageAndWaitAck(MidiOutput *out, MidiMessage &msg, int msec)
+	{
+		std::unique_lock<std::mutex> lck(_mutex);
+		out->sendMessageNow(msg);
+		return _ack_cv.wait_for(lck, std::chrono::milliseconds(msec));
+	}
+
+	std::cv_status SendMessageAndWaitReply(MidiOutput *out, MidiMessage &msg, int msec)
+	{
+		std::unique_lock<std::mutex> lck(_mutex);
+		out->sendMessageNow(msg);
+		return _reply_cv.wait_for(lck, std::chrono::milliseconds(msec));
+	}
+};
+
+
 class PGDevice
 {
 	friend class PGDeviceManager;
 
 public:
-	DeviceDesc Desc;
+	const PGMidiDeviceDesc Desc;
 
 
 	// following virtual function need to be impl
-	virtual bool saveCustomizedCC(int count, CustomCCData *udm){ return false; }
-	virtual bool saveCustomizedPC(int count, CustomPCData *udm){ return false; }
+	virtual bool saveCustomizedCC(int count, CustomCC *udm){ return false; }
+	virtual bool saveCustomizedPC(int count, CustomPC *udm){ return false; }
+	virtual bool requestCustomizedCC(int count, CustomCC *udm){ return false; }
+	virtual bool requestCustomizedPC(int count, CustomPC *udm){ return false; }
 	/*
 	virtual bool connect(OnConnectStatusChanged handlConnStatusChange, void *connStatusParam, OnG1ControlChange handleG1ControlChange, void *g1CcParam);
 	virtual void disconnect();
@@ -92,7 +117,7 @@ protected:
 	OnG1ControlChange _handleG1ControlChange;
 	void *_g1CcParam;
 
-	PGDevice(DeviceDesc desc) :
+	PGDevice(const PGMidiDeviceDesc &desc) :
 		Desc(desc)
 	{
 	}
@@ -102,63 +127,39 @@ private:
 
 class PGMidiDevice : public PGDevice
 {
-	friend class PGDeviceManager;
-
-	struct MessageNotify
-	{
-		std::condition_variable *cv;
-		MidiMessage msg;
-
-		MessageNotify()
-		{
-			cv = new std::condition_variable();
-		}
-
-		~MessageNotify()
-		{
-			delete cv;
-		}
-	};
-
-
 	class PGMidiInputCallback : public MidiInputCallback
 	{
 	public:
-		PGMidiDevice *Device;
+		PGMidiDevice *OwnerMidiDevice;
 		PGMidiInputCallback(PGMidiDevice *device)
 		{
-			Device = device;
+			OwnerMidiDevice = device;
 		}
 		void handleIncomingMidiMessage(MidiInput *source, const MidiMessage &message);
 	};
 
 public:
+	MidiMessageBox MMBox;
+
+	PGMidiDevice(const PGMidiDeviceDesc &desc);
 	~PGMidiDevice();
 
-	std::map<int, MessageNotify> CVMap;
-	std::mutex Mutex;
-
-	static std::vector<DeviceDesc> getDevices();
-	static PGMidiDevice *openDevice(DeviceDesc desc);
-
-	bool saveCustomizedCC(int count, CustomCCData *udm);
-	bool saveCustomizedPC(int count, CustomPCData *udm);
+	static std::vector<PGMidiDeviceDesc> getDevices();
+	bool saveCustomizedCC(int count, CustomCC *ccc);
+	bool saveCustomizedPC(int count, CustomPC *cpc);
+	bool requestCustomizedCC(int count, CustomCC *ccc);
+	bool requestCustomizedPC(int count, CustomPC *cpc);
+	bool open();
 	void close();
-private:
 
+private:
 	MidiInput *_midiIn;
 	MidiOutput *_midiOut;
-
 	PGMidiInputCallback *_midiInputCallback;
-
-	bool open();
-	
-
-
-private:
-	PGMidiDevice(DeviceDesc desc);
 };
 
+
+/*
 class PGBleDevice : public PGDevice
 {
 	friend class PGDeviceManager;
@@ -166,8 +167,7 @@ class PGBleDevice : public PGDevice
 private:
 	PGBleDevice(DeviceDesc desc);
 };
-
-
+*/
 
 
 #endif  // PGDEVICE_H_INCLUDED

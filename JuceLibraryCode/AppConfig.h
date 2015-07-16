@@ -11,8 +11,8 @@
 
 */
 
-#ifndef __JUCE_APPCONFIG_REF6R5__
-#define __JUCE_APPCONFIG_REF6R5__
+#ifndef __JUCE_APPCONFIG_WRF2EZ__
+#define __JUCE_APPCONFIG_WRF2EZ__
 
 //==============================================================================
 // [BEGIN_USER_CODE_SECTION]
@@ -193,4 +193,4 @@
 #endif
 
 
-#endif  // __JUCE_APPCONFIG_REF6R5__
+#endif  // __JUCE_APPCONFIG_WRF2EZ__

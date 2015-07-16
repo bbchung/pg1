@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ReF6R5" name="pg_midi_lib" projectType="dll" version="1.0.0"
+<JUCERPROJECT id="Wrf2ez" name="pg_midi_lib" projectType="consoleapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.pg_midi_lib" includeBinaryInAppConfig="1"
               jucerVersion="3.1.0">
-  <MAINGROUP id="oRYDpk" name="pg_midi_lib">
-    <GROUP id="{434720CF-52B0-A9B6-B857-FB18C7713649}" name="Source">
-      <FILE id="YqQ2Bj" name="PGSysEx.cpp" compile="1" resource="0" file="Source/PGSysEx.cpp"/>
-      <FILE id="BzmX6g" name="PGSysEx.h" compile="0" resource="0" file="Source/PGSysEx.h"/>
-      <FILE id="vghOby" name="PGMidiDevice.cpp" compile="1" resource="0"
-            file="Source/PGMidiDevice.cpp"/>
-      <FILE id="Bm3uO5" name="PGDevice.h" compile="0" resource="0" file="Source/PGDevice.h"/>
-      <FILE id="TJfON5" name="PGDeviceManager.h" compile="0" resource="0"
-            file="Source/PGDeviceManager.h"/>
-      <FILE id="PIjDu7" name="PGDeviceManager.cpp" compile="1" resource="0"
+  <MAINGROUP id="kOOrTX" name="pg_midi_lib">
+    <GROUP id="{BDF28CCC-71E8-CF6E-53D4-8EE56F6C9C52}" name="Source">
+      <FILE id="ReliYe" name="PGDevice.h" compile="0" resource="0" file="Source/PGDevice.h"/>
+      <FILE id="GLtLZA" name="PGDeviceManager.cpp" compile="1" resource="0"
             file="Source/PGDeviceManager.cpp"/>
+      <FILE id="AGVsED" name="PGDeviceManager.h" compile="0" resource="0"
+            file="Source/PGDeviceManager.h"/>
+      <FILE id="hOwuHj" name="PGMidiDevice.cpp" compile="1" resource="0"
+            file="Source/PGMidiDevice.cpp"/>
+      <FILE id="nLDduV" name="PGSysEx.cpp" compile="1" resource="0" file="Source/PGSysEx.cpp"/>
+      <FILE id="NvtCMO" name="PGSysEx.h" compile="0" resource="0" file="Source/PGSysEx.h"/>
+      <FILE id="mWtkMr" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
@@ -25,36 +26,36 @@
                        isDebug="0" optimisation="2" targetName="pg_midi_lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="../../juce/modules"/>
-        <MODULEPATH id="juce_events" path="../../juce/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../juce/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../juce/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../juce/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../juce/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../juce/modules"/>
-        <MODULEPATH id="juce_video" path="../../juce/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../juce/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../juce/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../juce/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../juce/modules"/>
+        <MODULEPATH id="juce_core" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_events" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_video" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../JUCE-WINDOWS/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../JUCE-WINDOWS/modules"/>
       </MODULEPATHS>
     </VS2013>
   </EXPORTFORMATS>
   <MODULES>
-    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_events" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
-    <MODULES id="juce_video" showAllCode="1" useLocalCopy="0"/>
+    <MODULES id="juce_audio_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_devices" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_formats" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_audio_processors" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_core" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_cryptography" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_data_structures" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_events" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_graphics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_basics" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_gui_extra" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_opengl" showAllCode="1" useLocalCopy="1"/>
+    <MODULES id="juce_video" showAllCode="1" useLocalCopy="1"/>
   </MODULES>
   <JUCEOPTIONS/>
 </JUCERPROJECT>

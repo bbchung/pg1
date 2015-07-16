@@ -10,8 +10,8 @@
 
 */
 
-#ifndef __APPHEADERFILE_REF6R5__
-#define __APPHEADERFILE_REF6R5__
+#ifndef __APPHEADERFILE_WRF2EZ__
+#define __APPHEADERFILE_WRF2EZ__
 
 #include "AppConfig.h"
 #include "modules/juce_audio_basics/juce_audio_basics.h"
@@ -43,4 +43,4 @@ namespace ProjectInfo
 }
 #endif
 
-#endif   // __APPHEADERFILE_REF6R5__
+#endif   // __APPHEADERFILE_WRF2EZ__
